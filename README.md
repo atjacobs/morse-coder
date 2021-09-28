@@ -14,5 +14,5 @@ cc -o morse morse.c main.c
 
 ## To use:
 
-`./morse HELLO THERE`
+`./morse 'HELLO THERE'`
 
