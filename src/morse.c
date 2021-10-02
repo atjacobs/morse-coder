@@ -96,15 +96,14 @@ nextcharfromidle:
 			state = current_code & 1 ? MORSE_DASH : MORSE_DOT;
 			break;
 		case MORSE_SPACE_WORD:
+		if (* messageIdx == 0){
+			state = MORSE_IDLE;
+			break;
+		}
 nextcharfromwordspace:
 			messageIdx++;
-			if( *messageIdx == ' '){
+			if ((* messageIdx == 0) || ( *messageIdx == ' ')){
 				state = MORSE_SPACE_WORD;
-				messageIdx++;
-				break;
-			}
-			if (* messageIdx == 0){
-				state = MORSE_IDLE; // TODO: make this MORSE_SPACE_WORD
 				break;
 			}
 			if ((code_idx = morse_index(*messageIdx)) < 0){
@@ -122,7 +121,7 @@ nextcharfromwordspace:
 nextcharfromdotdash:
 				messageIdx++;
 				if( *messageIdx == 0 ){
-					state = MORSE_IDLE; // TODO: make this MORSE_SPACE_WORD
+					state = MORSE_SPACE_WORD; // TODO: make this MORSE_SPACE_WORD
 				}else if( *messageIdx == ' ' ){
 					state = MORSE_SPACE_WORD;
 				}else if( (code_idx = morse_index(*messageIdx) ) < 0 ) {
