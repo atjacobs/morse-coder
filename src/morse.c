@@ -70,16 +70,14 @@ void morse_init(char *message){
 
 // works the state machine
 morse_state_t morse_state(void){
-	static unsigned short bit_position;
+	static short bit_position;
 	static char current_code;
 	static unsigned int current_code_length;
 	uint8_t code_idx;
 	switch (state){
 		case MORSE_IDLE:
-			// are there any letters in the queue?
-			// Immediately assume next state.
 			bit_position = 0;
-			// TODO: handle lower case, spaces
+nextcharfromidle:
 			if( *messageIdx == ' '){
 				state = MORSE_SPACE_WORD;
 				messageIdx++;
@@ -89,32 +87,16 @@ morse_state_t morse_state(void){
 				break;
 			}
 			code_idx = morse_index(*messageIdx);
+			if( code_idx < 0 ){
+				messageIdx++;
+				goto nextcharfromidle;
+			}
 			current_code = morse_codes[code_idx].sequence;
 			current_code_length = morse_codes[code_idx].length;
 			state = current_code & 1 ? MORSE_DASH : MORSE_DOT;
 			break;
-		case MORSE_DASH:
-		case MORSE_DOT:
-			bit_position++;
-			if( bit_position >= current_code_length ){
-				bit_position = 0;
-				messageIdx++;
-				if( *messageIdx == 0 ){
-					state = MORSE_IDLE;
-				}else if( *messageIdx == ' ' ){
-					state = MORSE_SPACE_WORD;
-				}else {
-					state = MORSE_SPACE_DASH;
-				}
-				break;
-			}
-			if((current_code >> bit_position) & 1){
-				state = MORSE_DASH;
-			}else{
-				state = MORSE_DOT;
-			}
-			break;
 		case MORSE_SPACE_WORD:
+nextcharfromwordspace:
 			messageIdx++;
 			if( *messageIdx == ' '){
 				state = MORSE_SPACE_WORD;
@@ -122,13 +104,48 @@ morse_state_t morse_state(void){
 				break;
 			}
 			if (* messageIdx == 0){
+				state = MORSE_IDLE; // TODO: make this MORSE_SPACE_WORD
 				break;
 			}
+			if ((code_idx = morse_index(*messageIdx)) < 0){
+				goto nextcharfromwordspace;
+			}
+			bit_position = -1;
+			current_code = morse_codes[code_idx].sequence;
+			current_code_length = morse_codes[code_idx].length;
+			// fall through to dot or dash.
+		case MORSE_DASH:
+		case MORSE_DOT:
+			bit_position++;
+			if( bit_position >= current_code_length ){
+				bit_position = 0;
+nextcharfromdotdash:
+				messageIdx++;
+				if( *messageIdx == 0 ){
+					state = MORSE_IDLE; // TODO: make this MORSE_SPACE_WORD
+				}else if( *messageIdx == ' ' ){
+					state = MORSE_SPACE_WORD;
+				}else if( (code_idx = morse_index(*messageIdx) ) < 0 ) {
+					goto nextcharfromdotdash;
+				}else{
+					state = MORSE_SPACE_DASH;
+				}
+				break;
+			}
+			state = MORSE_SPACE_DOT;
+			break;
 		case MORSE_SPACE_DASH:
 			code_idx = morse_index(*messageIdx);
 			current_code = morse_codes[code_idx].sequence;
 			current_code_length = morse_codes[code_idx].length;
 			state = current_code & 1 ? MORSE_DASH : MORSE_DOT;
+			break;
+		case MORSE_SPACE_DOT:
+			if((current_code >> bit_position) & 1){
+				state = MORSE_DASH;
+			}else{
+				state = MORSE_DOT;
+			}
 			break;
 	}
 	return state;
