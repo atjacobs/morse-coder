@@ -4,11 +4,11 @@
 
 
 typedef struct {
-	char sequence : 5; // 0 for dot, 1 for dash.  In order of ascending bits.
-	unsigned int length: 3;
+	unsigned short sequence; // 0 for dot, 1 for dash.  In order of ascending bits.
+	unsigned short length;
 } morse_code;
 
-morse_code morse_codes[26] = {
+morse_code morse_codes[36] = {
 	{2, 2}, // A 
 	{1, 4}, // B
 	{3, 4}, // C
@@ -25,7 +25,8 @@ morse_code morse_codes[26] = {
 	{1, 2}, // N
 	{7, 3}, // O
 	{6, 4}, // P
-	{11,4}, // R
+	{11,4}, // Q
+	{2, 3}, // R
 	{0, 3}, // S
 	{1, 1}, // T
 	{4, 3}, // U
@@ -34,11 +35,33 @@ morse_code morse_codes[26] = {
 	{9, 4}, // X
 	{13,4}, // Y
 	{3, 4}, // Z
+	{31,5}, // 0
+	{30,5}, // 1
+	{28,5}, // 2
+	{24,5}, // 3
+	{16,5}, // 4
+	{0, 5}, // 5
+	{1, 5}, // 6
+	{3, 5}, // 7
+	{7, 5}, // 8
+	{15,5}, // 9
 };
 
 static char term = '\0';
 static char *messageIdx = &term;
 static morse_state_t state;
+
+static short morse_index(char c)
+{
+	if((c >= 'a') && (c <= 'z')){
+		return c - 'a';
+	}else if((c >= 'A') && (c <= 'Z')){
+		return c - 'A';
+	}else if((c >= '0') && (c <= '9')){
+		return c - '0' + 26;
+	}
+	return -1;
+}
 
 void morse_init(char *message){
 	state = MORSE_IDLE;
@@ -65,7 +88,7 @@ morse_state_t morse_state(void){
 			if (* messageIdx == 0){
 				break;
 			}
-			code_idx = *messageIdx - 'A';
+			code_idx = morse_index(*messageIdx);
 			current_code = morse_codes[code_idx].sequence;
 			current_code_length = morse_codes[code_idx].length;
 			state = current_code & 1 ? MORSE_DASH : MORSE_DOT;
@@ -102,7 +125,7 @@ morse_state_t morse_state(void){
 				break;
 			}
 		case MORSE_SPACE_DASH:
-			code_idx = *messageIdx - 'A';
+			code_idx = morse_index(*messageIdx);
 			current_code = morse_codes[code_idx].sequence;
 			current_code_length = morse_codes[code_idx].length;
 			state = current_code & 1 ? MORSE_DASH : MORSE_DOT;
