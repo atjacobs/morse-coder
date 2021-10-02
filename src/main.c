@@ -14,7 +14,7 @@ int main(int argc, char *argv[]){
 				case MORSE_DASH:
 					printf("_");
 					break;
-				case MORSE_SPACE_CHAR:
+				case MORSE_SPACE_WORD:
 					printf("\t");
 					break;
 				case MORSE_SPACE_DASH:

@@ -81,7 +81,7 @@ morse_state_t morse_state(void){
 			bit_position = 0;
 			// TODO: handle lower case, spaces
 			if( *messageIdx == ' '){
-				state = MORSE_SPACE_CHAR;
+				state = MORSE_SPACE_WORD;
 				messageIdx++;
 				break;
 			}
@@ -102,7 +102,7 @@ morse_state_t morse_state(void){
 				if( *messageIdx == 0 ){
 					state = MORSE_IDLE;
 				}else if( *messageIdx == ' ' ){
-					state = MORSE_SPACE_CHAR;
+					state = MORSE_SPACE_WORD;
 				}else {
 					state = MORSE_SPACE_DASH;
 				}
@@ -114,10 +114,10 @@ morse_state_t morse_state(void){
 				state = MORSE_DOT;
 			}
 			break;
-		case MORSE_SPACE_CHAR:
+		case MORSE_SPACE_WORD:
 			messageIdx++;
 			if( *messageIdx == ' '){
-				state = MORSE_SPACE_CHAR;
+				state = MORSE_SPACE_WORD;
 				messageIdx++;
 				break;
 			}
